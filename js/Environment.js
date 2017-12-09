@@ -2,6 +2,7 @@
 function Environment(scene) {
 	this.buildings = [];
 	this.gound = null;
+	this.sky = null;
 	this.missiles = [];
 	this.scene = scene;
 
@@ -75,6 +76,24 @@ function Environment(scene) {
 		return buildingMesh;
 	}
 
+	this.createSky = function() {
+		var sky = "https://iankurgarg.github.io/Missile-Command-Game/assets/sky.jpg";
+
+		var texture = new THREE.TextureLoader().load(sky);
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.repeat.set( 4, 4 );
+
+		var geometry = new THREE.PlaneGeometry( 200, 100, 32 );
+		var material = new THREE.MeshBasicMaterial( {map: texture, side: THREE.DoubleSide} );
+		var sky = new THREE.Mesh( geometry, material );
+
+		sky.position.z = -50;
+		sky.position.y = 50;
+		this.sky = sky;
+		this.scene.add(sky);
+	}
+
 	// function to create ground
 	this.createGround = function () {
 		var grass = "https://iankurgarg.github.io/Missile-Command-Game/assets/grass.jpg";
@@ -84,7 +103,7 @@ function Environment(scene) {
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 4, 4 );
 
-		var geometry = new THREE.PlaneGeometry( 100, 50, 32 );
+		var geometry = new THREE.PlaneGeometry( 200, 50, 32 );
 		var material = new THREE.MeshBasicMaterial( {map: texture, side: THREE.DoubleSide} );
 		var ground = new THREE.Mesh( geometry, material );
 

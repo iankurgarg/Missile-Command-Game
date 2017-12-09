@@ -16,11 +16,16 @@ function init() {
 
 	// create the Scene
 	scene = new THREE.Scene();
+	scene.fog	= new THREE.FogExp2( 0xd0e0f0, 0.01 );
 	// scene.add(alight);
 
 	var plight = new THREE.PointLight( 'yellow', 1, 100 );
 	plight.position.set( 0, 50, 50 );
 	scene.add( plight );
+
+	// var light	= new THREE.HemisphereLight( 0xfffff0, 0x101020, 1.25 );
+	// light.position.set( 0.75, 1, 0.25 );
+	// scene.add( light );
 
 	// create the container element
 	container = document.createElement( 'div' );
@@ -35,6 +40,7 @@ function init() {
 	env = new Environment(scene);
 	
 	env.createGround();
+	env.createSky();
 	env.fillBuildings();
 	env.addWeapon();
 	
@@ -44,10 +50,9 @@ function init() {
 	menv.addMissiles();
 	menv.addMissiles();
 	menv.addMissiles();
-	menv.addMissiles();
-	menv.addMissiles();
-	menv.addMissiles();
-	menv.addMissiles();
+	
+
+	document.addEventListener( 'mousedown', onMouseClick, false );
 }
 
 function animateMissile() {
@@ -58,6 +63,15 @@ function animateMissile() {
 			m.position.y -= 0.1;
 			m.position.x += (m.rotation.z*0.1);	
 		}
+	}
+
+	var defense = menv.getDefensive();
+	for (var i = 0; i < defense.length; i++) {
+		var m = defense[i];
+		// if (m.position.y < 10) {
+			m.position.y += 0.2;
+			m.position.x -= (m.rotation.z*0.2);	
+		// }
 	}
 }
 
@@ -70,6 +84,12 @@ function isGameOver() {
 }
 
 
+function onMouseClick(event) {
+	event.preventDefault();
+	// alert('hello');
+	// alert(menv.ammo);
+	menv.fire(event.clientX, event.clientY);
+}
 
 
 // ## Animate and Display the Scene
