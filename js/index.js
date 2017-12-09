@@ -12,15 +12,19 @@ animate();
 function init() {
 	// create the camera
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 100000 );
-	var alight = new THREE.AmbientLight( 0x404040 ); // soft white light
+	// var alight = new THREE.AmbientLight( 0x404040 ); // soft white light
 
 	// create the Scene
 	scene = new THREE.Scene();
-	scene.fog	= new THREE.FogExp2( 0xd0e0f0, 0.01 );
+	// scene.fog	= new THREE.FogExp2( 0xd0e0f0, 0.007 );
 	// scene.add(alight);
 
 	var plight = new THREE.PointLight( 'yellow', 1, 100 );
 	plight.position.set( 0, 50, 50 );
+	plight.shadow.mapSize.width = 512;  // default
+	plight.shadow.mapSize.height = 512; // default
+	plight.shadow.camera.near = 0.5;       // default
+	plight.shadow.camera.far = 500      // default
 	scene.add( plight );
 
 	// var light	= new THREE.HemisphereLight( 0xfffff0, 0x101020, 1.25 );

@@ -7,21 +7,25 @@ function Environment(scene) {
 	this.scene = scene;
 
 	this.fillBuildings = function () {
-		for (var i = 0; i < 5; i++) {
-			var b1 = this.createBuilding();
-			b1.position.x = (Math.random() * 50) - 20;
-			b1.position.z = (Math.random() * 20) - 10;
-			b1.scale.x = (Math.random() * 5) + 5;
-			b1.scale.y = (Math.random() * 15) + 10;
-			b1.scale.z = (Math.random() * 5) + 5;
-
-			this.buildings.push(b1);
-			this.scene.add(b1);
-		}
+		this.addBuilding(-30, -10, 7.5, 20);
+		this.addBuilding(30, -20, 7.5, 40);
+		this.addBuilding(-50, -10, 7.5, 15);
+		this.addBuilding(-30, -70, 7.5, 20);
+		this.addBuilding(20, -40, 7.5, 20);
+		this.addBuilding(20, -40, 7.5, 60);
+		this.addBuilding(-10, -40, 7.5, 20);
 	}
 
-	this.addMissiles = function () {
+	this.addBuilding = function(x, z, scalex, scaley) {
+		var b1 = this.createBuilding();
+		b1.position.x = x;
+		b1.position.z = z;
+		b1.scale.x = scalex;
+		b1.scale.y = scaley;
+		b1.scale.z = scalex;
 
+		this.buildings.push(b1);
+		this.scene.add(b1);
 	}
 
 	// function to create building
@@ -43,8 +47,10 @@ function Environment(scene) {
 		geometry.faceVertexUvs[0][5][1].set( 0, 0 );
 		geometry.faceVertexUvs[0][5][2].set( 0, 0 );
 
-		var topColor = new THREE.Color( 0xffffff );
-		var bottomColor = new THREE.Color( 'pink' );
+		var topColor = new THREE.Color( 'white' );
+		var colors = ['brown', 'black', 'pink', 'orange', 'red']
+
+		var bottomColor = new THREE.Color( colors[Math.floor(Math.random()*colors.length)] );
 
 		var baseColor2   = new THREE.Color().setRGB( 0.90, 0.70, 0.70 );
 		
@@ -82,14 +88,14 @@ function Environment(scene) {
 		var texture = new THREE.TextureLoader().load(sky);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 4, 4 );
+		texture.repeat.set( 1, 1 );
 
-		var geometry = new THREE.PlaneGeometry( 200, 100, 32 );
+		var geometry = new THREE.PlaneGeometry( 400, 135, 32 );
 		var material = new THREE.MeshBasicMaterial( {map: texture, side: THREE.DoubleSide} );
 		var sky = new THREE.Mesh( geometry, material );
 
-		sky.position.z = -50;
-		sky.position.y = 50;
+		sky.position.z = -70;
+		sky.position.y = 70;
 		this.sky = sky;
 		this.scene.add(sky);
 	}
@@ -103,10 +109,11 @@ function Environment(scene) {
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 4, 4 );
 
-		var geometry = new THREE.PlaneGeometry( 200, 50, 32 );
+		var geometry = new THREE.PlaneGeometry( 400, 100, 32 );
 		var material = new THREE.MeshBasicMaterial( {map: texture, side: THREE.DoubleSide} );
 		var ground = new THREE.Mesh( geometry, material );
 
+		ground.position.z = -20;
 		ground.rotation.x = -1.5;
 		this.ground = ground;
 		this.scene.add(ground);
@@ -131,7 +138,7 @@ function Environment(scene) {
 		    objLoader.load( 'weapon1.obj', 
 		    function ( object ) {
 
-		        object.position.x = -35;
+		        // object.position.x = -35;
 				object.position.z = 20;
 				object.rotation.y = 1.57;
 				// object.rotation.x = 1.17;
