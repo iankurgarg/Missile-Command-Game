@@ -12,6 +12,7 @@ function Environment(scene, camera, audio_listener) {
 	this.missiles = [];
 	this.defense = [];
 	this.weapons = [];
+	this.ships = [];
 	this.explosions = [];
 	
 	// z of the plane where 'playing' happens. will change the location of the buildings
@@ -36,6 +37,8 @@ function Environment(scene, camera, audio_listener) {
 
 	// some flags
 	this.missile_loaded = false;
+	this.ship_loaded = false;
+	this.ship_counter = 0;
 
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
@@ -50,7 +53,7 @@ function Environment(scene, camera, audio_listener) {
 
 		this.addBuilding(-30, this.planez, 7.5, 20);
 		this.addBuilding(0, this.planez, 7.5, 20);
-		this.addBuilding(30, this.planez, 7.5, 40);
+		this.addBuilding(30, this.planez,4, 30);
 		this.addBuilding(-50, this.planez, 5, 10);
 		this.addBuilding(-70, this.planez, 7.5, 20);
 		this.addBuilding(70, this.planez, 7.5, 60);
@@ -118,6 +121,13 @@ function Environment(scene, camera, audio_listener) {
 		var temp = this.buildings[i];
 		this.buildings.splice(i, 1);
 		this.scene.remove(temp);
+	}
+
+	this.destroyShip = function(i) {
+		var temp = this.ships[i];
+		this.ships.splice(i, 1);
+		this.scene.remove(temp);
+		this.ExplodeAnimation(temp.position.x, temp.position.y);
 	}
 
 	this.getClosestWeapon = function(x) {
@@ -197,6 +207,10 @@ function Environment(scene, camera, audio_listener) {
 		return this.defense;
 	}
 
+	this.getShips = function() {
+		return this.ships;
+	}
+
 	this.createMissile = function (c) {
 		var geometry = new THREE.CylinderGeometry( 0.5, 0.5, 5, 32 );
 		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, 0 ) );
@@ -215,6 +229,28 @@ function Environment(scene, camera, audio_listener) {
 
 		this.buildings.push(b1);
 		this.scene.add(b1);
+	}
+
+	this.addSpaceShip = function() {
+		this.ship_counter += 1;
+		if (this.ship_counter > 300 && this.ship_loaded) {
+			this.ship_counter = 0;
+
+			// randomly choose a ship model
+			var i = Math.floor(Math.random() * this.ship_models.length);
+			var m = this.ship_models[i].clone();
+			m.position.z = this.planez;
+			m.position.y = Math.random()*20 + 30;
+			m.position.x = 60;
+			m.velocity = {};
+			m.velocity.x = -0.5;
+			m.velocity.y = 0;
+			m.velocity.z = 0;
+			// m.rotation.z = Math.random()-0.5 + Math.PI;
+
+			this.ships.push(m);
+			this.scene.add(m);
+		}
 	}
 
 	this.checkCollisionWithWeapons = function(i) {
@@ -260,8 +296,14 @@ function Environment(scene, camera, audio_listener) {
 		return this.checkCollisionWithWeapons(i);
 	}
 
-	this.checkCollisionWithDefense = function(i) {
-		var missile = this.missiles[i];
+	this.checkCollisionWithDefense = function(i, type) {
+		var missile;
+		if (type == 'ship') {
+			missile = this.ships[i];
+		}
+		else {
+			missile = this.missiles[i];	
+		} 
 
 		var mbox = new THREE.Box3();
 		mbox.setFromObject(missile);
@@ -274,9 +316,15 @@ function Environment(scene, camera, audio_listener) {
 				console.log('collission with defense');
 
 				this.destroyDefense(l);
-				this.destroyMissile(i);
-
-				this.score += 10;
+				if (type == 'ship') {
+					this.destroyShip(i);
+					this.score += 50;
+				}
+				else {
+					this.destroyMissile(i);
+					this.score += 10;
+				}
+				
 				return true;
 			}
 			l -= 1;
@@ -454,6 +502,40 @@ function Environment(scene, camera, audio_listener) {
     	this.missile_model = [];
     	this.loadMissileModel('https://iankurgarg.github.io/Missile-Command-Game/assets/models/missile/missile.obj', 'red');
     	this.loadMissileModel('https://iankurgarg.github.io/Missile-Command-Game/assets/models/missile/missile.obj', 'green');
+
+    	this.ship_models = [];
+		this.loadSpaceShip('https://iankurgarg.github.io/Missile-Command-Game/assets/models/ship/ship.obj', 'grey');
+		this.loadSpaceShip('https://iankurgarg.github.io/Missile-Command-Game/assets/models/ship/ship.obj', 'golden');
+    }
+
+    this.loadSpaceShip = function(url, color) {
+    	var mtlLoader = new THREE.MTLLoader();
+		mtlLoader.setCrossOrigin('');
+
+	    var objLoader = new THREE.OBJLoader();
+	    // objLoader.setMaterials( materials );
+	    // objLoader.setPath('https://iankurgarg.github.io/Missile-Command-Game/assets/models/');
+	    objLoader.load( url, (function(object) {
+
+
+	    	object.traverse( function ( child ) {
+	             if ( child instanceof THREE.Mesh ) {
+	                  child.material.color.set(color);
+	                  	child.rotation.z = -Math.PI/2;
+	                  	child.rotation.y = Math.PI/2;
+	                  	child.scale.x = 0.6;
+	                  	child.scale.y = 0.6;
+	                  	child.scale.z = 0.6;
+				    	child.updateMatrix();
+				    	child.geometry.applyMatrix( child.matrix );
+				    	child.rotation.set( 0, 0, 0 );
+				    	child.updateMatrix();
+	                 }
+	             } );
+
+	    	this.ship_models.push(object);
+    		this.ship_loaded = true;
+	    }).bind(this));
     }
 
 

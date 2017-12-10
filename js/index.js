@@ -6,6 +6,10 @@ var skyboxMesh;
 var env;
 var game_started = 0;
 
+var missile_speed = 0.1;
+var defense_speed = 0.3;
+var ship_speed = 0.2;
+
 
 setUp();
 updateElements();
@@ -75,7 +79,7 @@ function handleKeyboardEvent(event) {
   const keyName = event.key;
   if (keyName === ' ') {
   	event.preventDefault();
-  	game_started = 1;
+  	game_started = 1 - game_started;
     return;
   }
 
@@ -83,40 +87,44 @@ function handleKeyboardEvent(event) {
 
 function animateMissile() {
 	if (failed() || won()) {
+		// if the player is either lost or has won, stop rendering. 
 		return;
 	}
-	env.addMissiles();
+	env.addMissiles(); // only adds if below a certain number
 
+	env.addSpaceShip(); // adds spaceship once in a while
 
-	env.updateExplosions();
+	env.updateExplosions(); // animates explosions if any going on. deletes them once finished.
 
 	var missiles = env.getMissiles();
 
+	// move the missiles. also checks for collisions.
 	var l = missiles.length - 1;
 	while (l >= 0) {
 		var m = missiles[l];
 		if (m.position.y > 0) {
-			m.position.y -= 0.1;
-			m.position.x += ((m.rotation.z - Math.PI)*0.1);	
+			m.position.y -= missile_speed;
+			m.position.x += ((m.rotation.z - Math.PI)*missile_speed);
 		}
 		else {
 			// reached ground. app explosion here
 			env.destroyMissile(l);
 		}
 
-		if (!env.checkCollisionWithDefense(l)) {
+		if (!env.checkCollisionWithDefense(l, 'missile')) {
 			env.checkCollisionWithBuildings(l);	
 		}
 		
 		l -= 1;
 	}
 
+	// move defensive missiles. also checks for collisions.
 	var defense = env.getDefensive();
 	var l = defense.length - 1;
 	while (l >= 0) {
 		var m = defense[l];
 		if (m.position.y < 70) {
-			var deltaX = 0.2/Math.sqrt(1 + m.slopez*m.slopez);
+			var deltaX = defense_speed/Math.sqrt(1 + m.slopez*m.slopez);
 			var deltaY = 0.0;
 			if (m.slopez == Infinity) {
 				deltaX = 0;
@@ -130,7 +138,7 @@ function animateMissile() {
 				}
 			}
 			if (deltaX == 0) {
-				deltaY = 0.2;
+				deltaY = defense_speed;
 			}
 			else {
 				deltaY = deltaX*m.slopez;
@@ -145,6 +153,22 @@ function animateMissile() {
 			env.destroyDefense(l);
 		}
 		l -= 1;
+	}
+
+	var ships = env.getShips();
+	var l =  ships.length - 1;
+	while (l >= 0) {
+		var s = ships[l];
+		var dir = s.velocity.x;
+		if ((dir > 0 && s.position.x < 60) || (dir < 9 && s.position.x > -60) ) {
+			s.position.x += (dir);
+			env.checkCollisionWithDefense(l, 'ship');
+		}
+		else {
+			// out of range. stop rendering.
+			env.destroyShip(l);
+		}
+		l -=1;
 	}
 }
 
