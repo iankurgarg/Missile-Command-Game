@@ -31,7 +31,7 @@ function setUp() {
 	// scene.add(alight);
 
 	var plight = new THREE.PointLight( 'yellow', 1, 100 );
-	plight.position.set( 0, 50, 50 );
+	plight.position.set( -20, 50, 50 );
 	plight.shadow.mapSize.width = 512;  // default
 	plight.shadow.mapSize.height = 512; // default
 	plight.shadow.camera.near = 0.5;       // default

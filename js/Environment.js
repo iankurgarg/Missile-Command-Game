@@ -111,7 +111,7 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.resetStats = function() {
-		this.ammo = 20;
+		this.ammo = 20 + 5*(this.level - 1);
 		for (var i = 0; i < this.missiles.length; i++) {
 			this.scene.remove(this.missiles[i]);
 		}
