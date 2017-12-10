@@ -56,6 +56,7 @@ function updateElements() {
 	env.createGround();
 	env.createSky();
 	env.fillBuildings();
+	env.loadModels();
 	env.addWeapon();
 	
 	env.addMissiles();

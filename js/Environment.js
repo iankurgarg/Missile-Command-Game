@@ -34,6 +34,9 @@ function Environment(scene, camera, audio_listener) {
 	this.lives = 3;
 
 
+	// some flags
+	this.missile_loaded = false;
+
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
 		this.addBuilding(30, -20, 7.5, 40);
@@ -65,6 +68,13 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.addMissiles = function() {
+		if (!this.missile_loaded) {
+			return;
+		}
+
+		this.scene.add(this.missile_model);
+
+
 		if ((this.missiles.length) < this.max && this.total_max > 0) {
 			var m = this.createMissile('red');
 			m.position.z = this.planez;
@@ -386,7 +396,7 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.loadObjectCallback = function ( object ) {
-
+		this.weapons = [];
         // object.position.x = -35;
 		object.position.z = 20;
 		object.rotation.y = 1.57;
@@ -398,6 +408,24 @@ function Environment(scene, camera, audio_listener) {
 		this.weapons.push(object);
 
     }
+
+    this.loadModels = function () {
+    	this.loadMissileModel('https://iankurgarg.github.io/Missile-Command-Game/assets/models/missile/missile.obj');
+    }
+
+    this.loadMissileModel = function (url) {
+		var mtlLoader = new THREE.MTLLoader();
+		mtlLoader.setCrossOrigin('');
+
+	    var objLoader = new THREE.OBJLoader();
+	    // objLoader.setMaterials( materials );
+	    // objLoader.setPath('https://iankurgarg.github.io/Missile-Command-Game/assets/models/');
+	    objLoader.load( url, function(object) {
+	    	this.missile_model = object;
+	    	this.missile_loaded = true;
+	    });
+
+	}
 
 	// add weapon
 	this.addWeapon = function () {
@@ -414,7 +442,7 @@ function Environment(scene, camera, audio_listener) {
 		    var objLoader = new THREE.OBJLoader();
 		    // objLoader.setMaterials( materials );
 		    objLoader.setPath('https://iankurgarg.github.io/Missile-Command-Game/assets/models/');
-		    objLoader.load( 'weapon1.obj', this.loadObjectCallback);
+		    objLoader.load( 'weapon/weapon1.obj', this.loadObjectCallback);
 
 		// });
 
