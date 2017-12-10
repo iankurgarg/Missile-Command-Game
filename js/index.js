@@ -73,8 +73,8 @@ function updateElements() {
 
 function handleKeyboardEvent(event) {
   const keyName = event.key;
-  event.preventDefault();
   if (keyName === ' ') {
+  	event.preventDefault();
   	game_started = 1;
     return;
   }
@@ -176,10 +176,10 @@ function updateNotification() {
 
 
 function onMouseClick(event) {
-	event.preventDefault();
-	// alert('hello');
-	// alert(env.ammo);
-	env.fireWeapon(event.clientX, event.clientY);
+	if (game_started == 1) {
+		event.preventDefault();
+		env.fireWeapon(event.clientX, event.clientY);
+	}
 }
 
 // ## Animate and Display the Scene

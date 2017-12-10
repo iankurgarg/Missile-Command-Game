@@ -44,9 +44,11 @@ function Environment(scene, camera, audio_listener) {
 		this.addBuilding(-30, -70, 7.5, 20);
 		this.addBuilding(20, -40, 7.5, 20);
 		this.addBuilding(20, -40, 7.5, 60);
+		this.addBuilding(-20, -40, 7.5, 60);
 		this.addBuilding(-10, -40, 7.5, 20);
 
 		this.addBuilding(-30, this.planez, 7.5, 20);
+		this.addBuilding(0, this.planez, 7.5, 20);
 		this.addBuilding(30, this.planez, 7.5, 40);
 		this.addBuilding(-50, this.planez, 7.5, 15);
 		this.addBuilding(-70, this.planez, 7.5, 20);
@@ -464,6 +466,9 @@ function Environment(scene, camera, audio_listener) {
 	             if ( child instanceof THREE.Mesh ) {
 	                  child.material.color.set(color);
 	                  	child.rotation.z = -Math.PI/2;
+	                  	child.scale.x = 0.8;
+	                  	child.scale.y = 0.8;
+	                  	child.scale.z = 0.8;
 				    	child.updateMatrix();
 				    	child.geometry.applyMatrix( child.matrix );
 				    	child.rotation.set( 0, 0, 0 );
