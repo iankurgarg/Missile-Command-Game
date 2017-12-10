@@ -135,7 +135,7 @@ function animateMissile() {
 
 
 function won() {
-	if (env.total_max == 0 && env.getMissiles().length == 0) {
+	if (env.total_max == 0 && env.getMissiles().length == 0 && env.score > 0) {
 		alert("Game Over. You win. Next Level will be added soon");
 		cancelAnimationFrame(animation_frame_requester);
 	}
@@ -143,8 +143,14 @@ function won() {
 
 function failed() {
 	if (env.lives == 0 ) {
-		alert ("Game Over. You Lost. Restart to continue");
+		alert ("Game Over. You Lost. Restart to play again");
 		cancelAnimationFrame(animation_frame_requester);
+	}
+	else {
+		if (env.total_max == 0 && env.getMissiles().length == 0 && env.score == 0) {
+			alert ("Game Over. You Lost. Zero Score. Restart to play again");
+			cancelAnimationFrame(animation_frame_requester);
+		}
 	}
 }
 
