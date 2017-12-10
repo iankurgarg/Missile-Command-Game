@@ -69,31 +69,52 @@ function updateElements() {
 
 function animateMissile() {
 	var missiles = env.getMissiles();
-	for (var i = 0; i < missiles.length; i++) {
-		var m = missiles[i];
+
+	var l = missiles.length - 1;
+	while (l >= 0) {
+		var m = missiles[l];
 		if (m.position.y > 0) {
 			m.position.y -= 0.1;
 			m.position.x += (m.rotation.z*0.1);	
 		}
 
-		env.checkCollisionWithBuildings(m);
-		env.checkCollisionWithDefense(m);
+		if (!env.checkCollisionWithDefense(l)) {
+			env.checkCollisionWithBuildings(l);	
+		}
+		
+		l -= 1;
 	}
 
 	var defense = env.getDefensive();
-	for (var i = 0; i < defense.length; i++) {
-		var m = defense[i];
+	var l = defense.length - 1;
+	while (l >= 0) {
+		var m = defense[l];
 		// if (m.position.y < 10) {
 			var deltaX = 0.2/Math.sqrt(1 + m.slopez*m.slopez);
-			if (m.slopez > 0) {
-				m.position.y += deltaX*m.slopez;
-				m.position.x += (deltaX);
+			var deltaY = 0.0;
+			if (m.slopez == Infinity) {
+				deltaX = 0;
+			}
+			else if (m.slopez < 0) {
+				deltaX = -deltaX;
+			}
+			else if (m.slopez == 0){
+				if (m.rotation.z < 0) {
+					deltaX = -deltaX;
+				}
+			}
+			if (deltaX == 0) {
+				deltaY = 0.2;
 			}
 			else {
-				m.position.y += (-deltaX)*m.slopez;
-				m.position.x += (-deltaX);
+				deltaY = deltaX*m.slopez;
 			}
+
+			m.position.y += (deltaY);
+			m.position.x += (deltaX);
+
 		// }
+		l -= 1;
 	}
 }
 
@@ -105,7 +126,7 @@ function isGameOver() {
 }
 
 function updateNotification() {
-	notifications.textContent = "Ammo: " + env.ammo;
+	notifications.textContent = "Ammo: " + env.ammo + "    Score: " + env.score;
 }
 
 

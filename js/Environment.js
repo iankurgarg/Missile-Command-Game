@@ -16,6 +16,8 @@ function Environment(scene, camera, audio_listener) {
 	this.camera = camera;
 	this.audio_listener = audio_listener;
 
+	this.score = 0;
+
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
 		this.addBuilding(30, -20, 7.5, 40);
@@ -79,10 +81,28 @@ function Environment(scene, camera, audio_listener) {
 		    var intersects = raycaster.intersectObject( this.plane );
 		    
 		    var dir = intersects[0].point.sub(m.position);
+		    
 			m.rotation.z = Math.tanh(Math.abs(dir.y/dir.x)) - Math.PI/2;
 			m.slopez = dir.y/dir.x;
-			if (dir.y * dir.x < 0) {
-				m.rotation.z = -m.rotation.z;
+			if (dir.x < 0) {
+				if (dir.y > 0) {
+					m.rotation.z = -m.rotation.z;
+				}
+				else {
+					m.rotation.z = - Math.PI/2;
+					m.slopez = 0;
+				}
+			}
+			else {
+				if (dir.y < 0) {
+					m.rotation.z = Math.PI/2;
+					m.slopez = 0;
+				}
+			}
+			// console.log(dir.x + ", " + dir.y);
+			if (Math.abs(dir.x) < 3) {
+				m.rotation.z = 0;
+				m.slopez = Infinity;
 			}
 			
 			this.ammo -= 1;
@@ -120,30 +140,52 @@ function Environment(scene, camera, audio_listener) {
 		this.scene.add(b1);
 	}
 
-	this.checkCollisionWithBuildings = function(missile) {
+	this.checkCollisionWithBuildings = function(i) {
+		var missile = this.missiles[i];
+
 		var mbox = new THREE.Box3();
 		mbox.setFromObject(missile);
-		for (var i = 0; i < this.buildings.length; i++) {
-			var b = this.buildings[i];
+		var l = this.buildings.length - 1;
+		while (l >= 0) {
+			var b = this.buildings[l];
 			var box = new THREE.Box3();
 			box.setFromObject(b);
 			if (box.intersectsBox(mbox)){
 				console.log('collission with building');
+				this.scene.remove(b);
+				this.scene.remove(missile);
+				this.buildings.splice(l, 1);
+				this.missiles.splice(i, 1);
+				return true;
 			}
+			l -= 1;
 		}
+		return false;
 	}
 
-	this.checkCollisionWithDefense = function(missile) {
+	this.checkCollisionWithDefense = function(i) {
+		var missile = this.missiles[i];
+
 		var mbox = new THREE.Box3();
 		mbox.setFromObject(missile);
-		for (var i = 0; i < this.defense.length; i++) {
-			var b = this.defense[i];
+		var l = this.defense.length - 1;
+		while (l >= 0) {
+			var b = this.defense[l];
 			var box = new THREE.Box3();
 			box.setFromObject(b);
 			if (box.intersectsBox(mbox)){
 				console.log('collission with defense');
+				this.scene.remove(b);
+				this.scene.remove(missile);
+				this.defense.splice(l, 1);
+				this.missiles.splice(i, 1);
+
+				this.score += 10;
+				return true;
 			}
+			l -= 1;
 		}
+		return false;
 	}
 
 	// function to create building
@@ -244,6 +286,48 @@ function Environment(scene, camera, audio_listener) {
 		this.ground = ground;
 		this.scene.add(ground);
 		// return ground;
+	}
+
+	this.ExplodeAnimation = function (x,y)
+	{
+		var geometry = new THREE.Geometry();
+		this.dirs = [];
+
+		for (i = 0; i < totalObjects; i ++) 
+		{ 
+			var vertex = new THREE.Vector3();
+			vertex.x = x;
+			vertex.y = y;
+			vertex.z = 0;
+
+			geometry.vertices.push( vertex );
+			this.dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
+		}
+		var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
+		var particles = new THREE.ParticleSystem( geometry, material );
+
+		this.object = particles;
+		this.status = true;
+
+		this.xDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+		this.yDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+		this.zDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+
+		this.scene.add( this.object  ); 
+
+		this.update = function(){
+		if (this.status == true){
+			var pCount = totalObjects;
+			while(pCount--) {
+				var particle =  this.object.geometry.vertices[pCount]
+				particle.y += dirs[pCount].y;
+				particle.x += dirs[pCount].x;
+				particle.z += dirs[pCount].z;
+			}
+			this.object.geometry.verticesNeedUpdate = true;
+		}
+		}
+	  
 	}
 
 	// add weapon
