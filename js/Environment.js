@@ -239,6 +239,11 @@ function Environment(scene, camera, audio_listener) {
 			// randomly choose a ship model
 			var i = Math.floor(Math.random() * this.ship_models.length);
 			var m = this.ship_models[i].clone();
+
+			// randomly choose a direction for the spaceship
+			var dirs = [1, -1];
+			var t = dirs[Math.floor(Math.random()*2)];
+
 			m.position.z = this.planez;
 			m.position.y = Math.random()*20 + 30;
 			m.position.x = 60;
