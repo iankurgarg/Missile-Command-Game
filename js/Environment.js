@@ -435,7 +435,7 @@ function Environment(scene, camera, audio_listener) {
 		}
 		else if (this.level == 2) {
 			// material = new THREE.MeshBasicMaterial( {color: 'red', side: THREE.DoubleSide} );	
-			sky = "https://iankurgarg.github.io/Missile-Command-Game/assets/images/sky_level.jpg";
+			sky = "https://iankurgarg.github.io/Missile-Command-Game/assets/images/sky_level2.jpg";
 		}
 
 		var texture = new THREE.TextureLoader().load(sky);

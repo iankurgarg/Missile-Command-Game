@@ -175,10 +175,11 @@ function animateMissile() {
 
 function won() {
 	if (env.total_max == 0 && env.getMissiles().length == 0 && env.score > 0 && env.explosions.length == 0) {
-		alert("Game Over. You win. Final Score = " + env.score);
 		
-		if (!env.updateLevel())
+		if (!env.updateLevel()) {
+			alert("Game Over. You win. Final Score = " + env.score);
 			cancelAnimationFrame(animation_frame_requester);
+		}
 	}
 }
 
