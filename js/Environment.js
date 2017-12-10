@@ -1,5 +1,5 @@
 
-function Environment(scene, camera) {
+function Environment(scene, camera, audio_listener) {
 	this.buildings = [];
 	this.gound = null;
 	this.sky = null;
@@ -14,6 +14,7 @@ function Environment(scene, camera) {
 	this.total_max = 10;
 	this.ammo = 20;
 	this.camera = camera;
+	this.audio_listener = audio_listener;
 
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
@@ -33,6 +34,18 @@ function Environment(scene, camera) {
 		this.addBuilding(0, -this.planez, 7.5, 20);
 	}
 
+	this.loadSounds = function() {
+		var sound = new THREE.Audio( this.audio_listener );
+
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'sounds/ambient.ogg', function( buffer ) {
+			sound.setBuffer( buffer );
+			sound.setLoop( false );
+			sound.setVolume( 0.5 );
+			sound.play();
+		});
+	}
+
 	this.addMissiles = function() {
 		if ((this.missiles.length) < this.max) {
 			var m = this.createMissile('red');
@@ -47,7 +60,7 @@ function Environment(scene, camera) {
 		}
 	}
 
-	this.fire = function(x, y) {
+	this.fireWeapon = function(x, y) {
 		if (this.ammo > 0) {
 			var m = this.createMissile('green');
 			m.position.z = this.planez;
@@ -55,8 +68,8 @@ function Environment(scene, camera) {
 			var raycaster = new THREE.Raycaster();
 
 			var vector = new THREE.Vector3(
-		        ( event.clientX / window.innerWidth ) * 2 - 1,
-		      - ( event.clientY / window.innerHeight ) * 2 + 1,
+		        ( x / window.innerWidth ) * 2 - 1,
+		      - ( y / window.innerHeight ) * 2 + 1,
 		      	0.5
 		    );
 
@@ -105,6 +118,32 @@ function Environment(scene, camera) {
 
 		this.buildings.push(b1);
 		this.scene.add(b1);
+	}
+
+	this.checkCollisionWithBuildings = function(missile) {
+		var mbox = new THREE.Box3();
+		mbox.setFromObject(missile);
+		for (var i = 0; i < this.buildings.length; i++) {
+			var b = this.buildings[i];
+			var box = new THREE.Box3();
+			box.setFromObject(b);
+			if (box.intersectsBox(mbox)){
+				console.log('collission with building');
+			}
+		}
+	}
+
+	this.checkCollisionWithDefense = function(missile) {
+		var mbox = new THREE.Box3();
+		mbox.setFromObject(missile);
+		for (var i = 0; i < this.defense.length; i++) {
+			var b = this.defense[i];
+			var box = new THREE.Box3();
+			box.setFromObject(b);
+			if (box.intersectsBox(mbox)){
+				console.log('collission with defense');
+			}
+		}
 	}
 
 	// function to create building

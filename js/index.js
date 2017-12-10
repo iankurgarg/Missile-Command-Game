@@ -6,12 +6,18 @@ var skyboxMesh;
 var env;
 
 
-init();
+setUp();
+updateElements();
 animate();
 
-function init() {
+function setUp() {
 	// create the camera
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 100000 );
+
+	var listener = new THREE.AudioListener();
+	camera.add( listener );
+
+
 	// var alight = new THREE.AmbientLight( 0x404040 ); // soft white light
 
 	// create the Scene
@@ -43,8 +49,10 @@ function init() {
 	container.appendChild( renderer.domElement );
 	
 
-	env = new Environment(scene, camera);
-	
+	env = new Environment(scene, camera, listener);
+}
+
+function updateElements() {
 	env.createGround();
 	env.createSky();
 	env.fillBuildings();
@@ -55,7 +63,6 @@ function init() {
 	env.addMissiles();
 	env.addMissiles();
 	env.addMissiles();
-	
 
 	document.addEventListener( 'mousedown', onMouseClick, false );
 }
@@ -68,13 +75,16 @@ function animateMissile() {
 			m.position.y -= 0.1;
 			m.position.x += (m.rotation.z*0.1);	
 		}
+
+		env.checkCollisionWithBuildings(m);
+		env.checkCollisionWithDefense(m);
 	}
 
 	var defense = env.getDefensive();
 	for (var i = 0; i < defense.length; i++) {
 		var m = defense[i];
-		if (m.position.y < 10) {
-			var deltaX = 0.1/Math.sqrt(1 + m.slopez*m.slopez);
+		// if (m.position.y < 10) {
+			var deltaX = 0.2/Math.sqrt(1 + m.slopez*m.slopez);
 			if (m.slopez > 0) {
 				m.position.y += deltaX*m.slopez;
 				m.position.x += (deltaX);
@@ -83,7 +93,7 @@ function animateMissile() {
 				m.position.y += (-deltaX)*m.slopez;
 				m.position.x += (-deltaX);
 			}
-		}
+		// }
 	}
 }
 
@@ -103,7 +113,7 @@ function onMouseClick(event) {
 	event.preventDefault();
 	// alert('hello');
 	// alert(env.ammo);
-	env.fire(event.clientX, event.clientY);
+	env.fireWeapon(event.clientX, event.clientY);
 }
 
 
