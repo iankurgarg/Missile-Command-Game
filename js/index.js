@@ -1,9 +1,9 @@
 
 var startTime	= Date.now();
-var container;
+var container, notifications;
 var camera, scene, renderer, stats;
 var skyboxMesh;
-var env, menv;
+var env;
 
 
 init();
@@ -35,32 +35,33 @@ function init() {
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
 
+	notifications = document.getElementById('notifications');
+
 	// init the WebGL renderer and append it to the Dom
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	container.appendChild( renderer.domElement );
 	
 
-	env = new Environment(scene);
+	env = new Environment(scene, camera);
 	
 	env.createGround();
 	env.createSky();
 	env.fillBuildings();
 	env.addWeapon();
 	
-	menv = new MissileGenerator(scene);
-	menv.addMissiles();
-	menv.addMissiles();
-	menv.addMissiles();
-	menv.addMissiles();
-	menv.addMissiles();
+	env.addMissiles();
+	env.addMissiles();
+	env.addMissiles();
+	env.addMissiles();
+	env.addMissiles();
 	
 
 	document.addEventListener( 'mousedown', onMouseClick, false );
 }
 
 function animateMissile() {
-	var missiles = menv.getMissiles();
+	var missiles = env.getMissiles();
 	for (var i = 0; i < missiles.length; i++) {
 		var m = missiles[i];
 		if (m.position.y > 0) {
@@ -69,30 +70,40 @@ function animateMissile() {
 		}
 	}
 
-	var defense = menv.getDefensive();
+	var defense = env.getDefensive();
 	for (var i = 0; i < defense.length; i++) {
 		var m = defense[i];
-		// if (m.position.y < 10) {
-			m.position.y += 0.2;
-			m.position.x -= (m.rotation.z*0.2);	
-		// }
+		if (m.position.y < 10) {
+			var deltaX = 0.1/Math.sqrt(1 + m.slopez*m.slopez);
+			if (m.slopez > 0) {
+				m.position.y += deltaX*m.slopez;
+				m.position.x += (deltaX);
+			}
+			else {
+				m.position.y += (-deltaX)*m.slopez;
+				m.position.x += (-deltaX);
+			}
+		}
 	}
 }
 
 
-
 function isGameOver() {
-	if (menv.total_max == 0 && menv.getMissiles().length == 0) {
+	if (env.total_max == 0 && env.getMissiles().length == 0) {
 		alert("Game Over");
 	}
+}
+
+function updateNotification() {
+	notifications.textContent = "Ammo: " + env.ammo;
 }
 
 
 function onMouseClick(event) {
 	event.preventDefault();
 	// alert('hello');
-	// alert(menv.ammo);
-	menv.fire(event.clientX, event.clientY);
+	// alert(env.ammo);
+	env.fire(event.clientX, event.clientY);
 }
 
 
@@ -101,6 +112,7 @@ function animate() {
 	// render the 3D scene
 	render();
 	animateMissile();
+	updateNotification();
 	// relaunch the 'timer' 
 	requestAnimationFrame( animate );
 }
@@ -109,7 +121,7 @@ function animate() {
 // ## Render the 3D Scene
 function render() {
 
-	camera.position.y = 30;
+	camera.position.y = 20;
 	camera.position.z = 75;
 
 	// actually display the scene in the Dom element

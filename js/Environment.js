@@ -1,10 +1,19 @@
 
-function Environment(scene) {
+function Environment(scene, camera) {
 	this.buildings = [];
 	this.gound = null;
 	this.sky = null;
 	this.missiles = [];
 	this.scene = scene;
+	this.plane = null;
+	this.planez = 10;
+
+	this.missiles = [];
+	this.defense = [];
+	this.max = 5;
+	this.total_max = 10;
+	this.ammo = 20;
+	this.camera = camera;
 
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
@@ -14,7 +23,77 @@ function Environment(scene) {
 		this.addBuilding(20, -40, 7.5, 20);
 		this.addBuilding(20, -40, 7.5, 60);
 		this.addBuilding(-10, -40, 7.5, 20);
+
+		this.addBuilding(-30, this.planez, 7.5, 20);
+		this.addBuilding(30, this.planez, 7.5, 40);
+		this.addBuilding(-50, this.planez, 7.5, 15);
+		this.addBuilding(-70, this.planez, 7.5, 20);
+		this.addBuilding(70, this.planez, 7.5, 60);
+		this.addBuilding(10, -this.planez, 7.5, 20);
+		this.addBuilding(0, -this.planez, 7.5, 20);
 	}
+
+	this.addMissiles = function() {
+		if ((this.missiles.length) < this.max) {
+			var m = this.createMissile('red');
+			m.position.z = this.planez;
+			m.position.y = 70;
+			m.position.x = Math.random()*40 - 20;
+			m.rotation.z = Math.random()-0.5;
+
+			this.missiles.push(m);
+			this.scene.add(m);
+			this.total_max -= 1;
+		}
+	}
+
+	this.fire = function(x, y) {
+		if (this.ammo > 0) {
+			var m = this.createMissile('green');
+			m.position.z = this.planez;
+
+			var raycaster = new THREE.Raycaster();
+
+			var vector = new THREE.Vector3(
+		        ( event.clientX / window.innerWidth ) * 2 - 1,
+		      - ( event.clientY / window.innerHeight ) * 2 + 1,
+		      	0.5
+		    );
+
+		    vector.unproject(this.camera);
+		    raycaster.set(this.camera.position, vector.sub(this.camera.position).normalize());
+
+		    var intersects = raycaster.intersectObject( this.plane );
+		    
+		    var dir = intersects[0].point.sub(m.position);
+			m.rotation.z = Math.tanh(Math.abs(dir.y/dir.x)) - Math.PI/2;
+			m.slopez = dir.y/dir.x;
+			if (dir.y * dir.x < 0) {
+				m.rotation.z = -m.rotation.z;
+			}
+			
+			this.ammo -= 1;
+			this.defense.push(m);
+			this.scene.add(m);
+		}
+	}
+
+	this.getMissiles = function() {
+		return this.missiles;
+	}
+
+	this.getDefensive = function() {
+		return this.defense;
+	}
+
+	this.createMissile = function (c) {
+		var geometry = new THREE.CylinderGeometry( 0.5, 0.5, 5, 32 );
+		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, 0 ) );
+		var material = new THREE.MeshBasicMaterial( {color: c} );
+		var cylinder = new THREE.Mesh( geometry, material );
+		return cylinder;
+	}
+
 
 	this.addBuilding = function(x, z, scalex, scaley) {
 		var b1 = this.createBuilding();
@@ -98,6 +177,14 @@ function Environment(scene) {
 		sky.position.y = 70;
 		this.sky = sky;
 		this.scene.add(sky);
+
+		plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(500, 500, 8, 8), 
+		   new THREE.MeshBasicMaterial( {
+		       color: 0x248f24, alphaTest: 0, visible: false
+		}));
+		plane.position.z = this.planez;
+		this.scene.add(plane);
+		this.plane = plane;
 	}
 
 	// function to create ground
