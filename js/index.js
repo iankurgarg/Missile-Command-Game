@@ -73,6 +73,9 @@ function animateMissile() {
 	}
 	env.addMissiles();
 
+
+	env.updateExplosions();
+
 	var missiles = env.getMissiles();
 
 	var l = missiles.length - 1;
@@ -84,8 +87,7 @@ function animateMissile() {
 		}
 		else {
 			// reached ground. app explosion here
-			scene.remove(m);
-			env.missiles.splice(l, 1);
+			env.destroyMissile(l);
 		}
 
 		if (!env.checkCollisionWithDefense(l)) {
@@ -126,8 +128,7 @@ function animateMissile() {
 		}
 		else {
 			// out of range. stop rendering
-			scene.remove(m);
-			env.defense.splice(l, 1);
+			env.destroyDefense(l);
 		}
 		l -= 1;
 	}
@@ -135,14 +136,14 @@ function animateMissile() {
 
 
 function won() {
-	if (env.total_max == 0 && env.getMissiles().length == 0 && env.score > 0) {
+	if (env.total_max == 0 && env.getMissiles().length == 0 && env.score > 0 && env.explosions.length == 0) {
 		alert("Game Over. You win. Next Level will be added soon");
 		cancelAnimationFrame(animation_frame_requester);
 	}
 }
 
 function failed() {
-	if (env.lives == 0 ) {
+	if (env.lives == 0  && env.explosions.length == 0) {
 		alert ("Game Over. You Lost. Restart to play again");
 		cancelAnimationFrame(animation_frame_requester);
 	}

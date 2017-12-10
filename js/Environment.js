@@ -12,6 +12,7 @@ function Environment(scene, camera, audio_listener) {
 	this.missiles = [];
 	this.defense = [];
 	this.weapons = [];
+	this.explosions = [];
 	
 	// z of the plane where 'playing' happens. will change the location of the buildings
 	this.planez = 10;
@@ -79,6 +80,7 @@ function Environment(scene, camera, audio_listener) {
 
 	this.destroyMissile = function(i) {
 		this.scene.remove(this.missiles[i]);
+		this.ExplodeAnimation(this.missiles[i].position.x, this.missiles[i].position.y);
 		this.missiles.splice(i, 1);
 	}
 
@@ -320,44 +322,82 @@ function Environment(scene, camera, audio_listener) {
 	this.ExplodeAnimation = function (x,y)
 	{
 		var geometry = new THREE.Geometry();
-		this.dirs = [];
+		dirs = [];
+
+		var movementSpeed = 1;
+		var totalObjects = 100;
+		var objectSize = 0.5;
+		var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
 
 		for (i = 0; i < totalObjects; i ++) 
 		{ 
 			var vertex = new THREE.Vector3();
 			vertex.x = x;
 			vertex.y = y;
-			vertex.z = 0;
+			vertex.z = this.planez;
 
 			geometry.vertices.push( vertex );
-			this.dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
+			dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
 		}
-		var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
+		var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: 'orange' });
 		var particles = new THREE.ParticleSystem( geometry, material );
 
-		this.object = particles;
-		this.status = true;
-
-		this.xDir = (Math.random() * movementSpeed)-(movementSpeed/2);
-		this.yDir = (Math.random() * movementSpeed)-(movementSpeed/2);
-		this.zDir = (Math.random() * movementSpeed)-(movementSpeed/2);
-
-		this.scene.add( this.object  ); 
-
-		this.update = function(){
-		if (this.status == true){
-			var pCount = totalObjects;
-			while(pCount--) {
-				var particle =  this.object.geometry.vertices[pCount]
-				particle.y += dirs[pCount].y;
-				particle.x += dirs[pCount].x;
-				particle.z += dirs[pCount].z;
-			}
-			this.object.geometry.verticesNeedUpdate = true;
-		}
-		}
+		var explosion = particles;
+		explosion.ecount = 0;
+		explosion.estatus = true;
+		explosion.dirs = dirs;
+		this.explosions.push(explosion);
+		this.scene.add(explosion);
 	  
 	}
+
+	this.updateExplosions = function(){
+		var l = this.explosions.length-1;
+		while(l >= 0) {
+			var a = this.updateExplosion(l);
+			if (!a) {
+				this.explosions.splice(l, 1);
+			}
+			l -=1;
+		}
+	}
+
+	this.updateExplosion = function(i){
+		var exp = this.explosions[i];
+		if (exp.ecount < 100) {
+			exp.ecount += 1;
+			if (exp.ecount %10 == 0) {
+				var pCount = exp.dirs.length;
+				while(pCount--) {
+					var particle =  exp.geometry.vertices[pCount];
+					particle.y += exp.dirs[pCount].y;
+					particle.x += exp.dirs[pCount].x;
+					particle.z += exp.dirs[pCount].z;
+				}
+				exp.geometry.verticesNeedUpdate = true;
+			}
+			return true;
+		}
+		else {
+			exp.estatus = false;
+			this.scene.remove(exp);
+			return false;
+		}
+	}
+
+	this.loadObjectCallback = function ( object ) {
+
+        // object.position.x = -35;
+		object.position.z = 20;
+		object.rotation.y = 1.57;
+		// object.rotation.x = 1.17;
+		object.scale.x = 0.15;
+		object.scale.y = 0.15;
+		object.scale.z = 0.15;
+		this.scene.add( object );
+		this.weapons.push(object);
+
+    }
 
 	// add weapon
 	this.addWeapon = function () {
@@ -374,20 +414,7 @@ function Environment(scene, camera, audio_listener) {
 		    var objLoader = new THREE.OBJLoader();
 		    // objLoader.setMaterials( materials );
 		    objLoader.setPath('https://iankurgarg.github.io/Missile-Command-Game/assets/models/');
-		    objLoader.load( 'weapon1.obj', 
-		    function ( object ) {
-
-		        // object.position.x = -35;
-				object.position.z = 20;
-				object.rotation.y = 1.57;
-				// object.rotation.x = 1.17;
-				object.scale.x = 0.15;
-				object.scale.y = 0.15;
-				object.scale.z = 0.15;
-				this.weapons.push(object);
-				this.scene.add( object );
-
-		    });
+		    objLoader.load( 'weapon1.obj', this.loadObjectCallback);
 
 		// });
 
@@ -410,11 +437,3 @@ function Environment(scene, camera, audio_listener) {
 		// });
 	}
 }
-
-
-
-
-
-
-
-
