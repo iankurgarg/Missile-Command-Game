@@ -44,13 +44,14 @@ function Environment(scene, camera, audio_listener) {
 		this.addBuilding(-30, -70, 7.5, 20);
 		this.addBuilding(20, -40, 7.5, 20);
 		this.addBuilding(20, -40, 7.5, 60);
-		this.addBuilding(-20, -40, 7.5, 60);
+		this.addBuilding(90, -40, 7.5, 60);
+		this.addBuilding(-90, -40, 7.5, 60);
 		this.addBuilding(-10, -40, 7.5, 20);
 
 		this.addBuilding(-30, this.planez, 7.5, 20);
 		this.addBuilding(0, this.planez, 7.5, 20);
 		this.addBuilding(30, this.planez, 7.5, 40);
-		this.addBuilding(-50, this.planez, 7.5, 15);
+		this.addBuilding(-50, this.planez, 5, 10);
 		this.addBuilding(-70, this.planez, 7.5, 20);
 		this.addBuilding(70, this.planez, 7.5, 60);
 		this.addBuilding(10, -this.planez, 7.5, 20);
@@ -94,24 +95,29 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.destroyMissile = function(i) {
-		this.scene.remove(this.missiles[i]);
-		this.ExplodeAnimation(this.missiles[i].position.x, this.missiles[i].position.y);
+		var temp = this.missiles[i];
 		this.missiles.splice(i, 1);
+		this.scene.remove(temp);
+		this.ExplodeAnimation(temp.position.x, temp.position.y);
+		
 	}
 
 	this.destroyDefense = function(i) {
-		this.scene.remove(this.defense[i]);
+		var temp = this.defense[i];
 		this.defense.splice(i, 1);
+		this.scene.remove(temp);
 	}
 
 	this.destroyWeapon = function(i) {
-		this.scene.remove(this.weapons[i]);
+		var temp = this.weapons[i];
 		this.weapons.splice(i, 1);
+		this.scene.remove(temp);
 	}
 
 	this.destroyBuilding = function(i) {
-		this.scene.remove(this.buildings[i]);
+		var temp = this.buildings[i];
 		this.buildings.splice(i, 1);
+		this.scene.remove(temp);
 	}
 
 	this.getClosestWeapon = function(x) {
@@ -129,7 +135,7 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.fireWeapon = function(x, y) {
-		if (this.ammo > 0) {
+		if (this.ammo > 0 && this.weapons.length > 0) {
 			// var m = this.createMissile('green');
 			var m = this.missile_model[1].clone();
 			m.position.z = this.planez;
@@ -155,6 +161,7 @@ function Environment(scene, camera, audio_listener) {
 		    
 			m.rotation.z = Math.tanh(Math.abs(dir.y/dir.x)) - Math.PI/2;
 			m.slopez = dir.y/dir.x;
+			
 			if (dir.x < 0) {
 				if (dir.y > 0) {
 					m.rotation.z = -m.rotation.z;
@@ -265,9 +272,7 @@ function Environment(scene, camera, audio_listener) {
 			box.setFromObject(b);
 			if (box.intersectsBox(mbox)){
 				console.log('collission with defense');
-				this.scene.remove(b);
-				this.defense.splice(l, 1);
-				
+
 				this.destroyDefense(l);
 				this.destroyMissile(i);
 
@@ -399,7 +404,7 @@ function Environment(scene, camera, audio_listener) {
 			geometry.vertices.push( vertex );
 			dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
 		}
-		var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: 'orange' });
+		var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: '#f27d0c' });
 		var particles = new THREE.ParticleSystem( geometry, material );
 
 		var explosion = particles;
