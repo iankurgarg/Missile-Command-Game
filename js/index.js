@@ -84,7 +84,7 @@ function animateMissile() {
 		var m = missiles[l];
 		if (m.position.y > 0) {
 			m.position.y -= 0.1;
-			m.position.x += (m.rotation.z*0.1);	
+			m.position.x += ((m.rotation.z - Math.PI)*0.1);	
 		}
 		else {
 			// reached ground. app explosion here
@@ -169,17 +169,17 @@ function onMouseClick(event) {
 	env.fireWeapon(event.clientX, event.clientY);
 }
 
-
 // ## Animate and Display the Scene
 function animate() {
 	animation_frame_requester = requestAnimationFrame( animate );
-	
 	// render the 3D scene
 	render();
 	animateMissile();
 	updateNotification();
 	// relaunch the 'timer' 
 }
+
+
 
 
 // ## Render the 3D Scene

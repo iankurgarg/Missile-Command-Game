@@ -69,18 +69,21 @@ function Environment(scene, camera, audio_listener) {
 
 	this.addMissiles = function() {
 		if (!this.missile_loaded) {
+			// console.log(this.missile_loaded);
 			return;
 		}
 
-		this.scene.add(this.missile_model);
+		// this.scene.add(this.missile_model);
 
 
 		if ((this.missiles.length) < this.max && this.total_max > 0) {
-			var m = this.createMissile('red');
+			// var m = this.createMissile('red');
+			var m = this.missile_model[0].clone();
 			m.position.z = this.planez;
 			m.position.y = 70;
 			m.position.x = Math.random()*60 - 30;
-			m.rotation.z = Math.random()-0.5;
+			m.rotation.z = Math.random()-0.5 + Math.PI;
+
 
 			this.missiles.push(m);
 			this.scene.add(m);
@@ -106,7 +109,8 @@ function Environment(scene, camera, audio_listener) {
 
 	this.fireWeapon = function(x, y) {
 		if (this.ammo > 0) {
-			var m = this.createMissile('green');
+			// var m = this.createMissile('green');
+			var m = this.missile_model[1].clone();
 			m.position.z = this.planez;
 
 			var raycaster = new THREE.Raycaster();
@@ -395,8 +399,7 @@ function Environment(scene, camera, audio_listener) {
 		}
 	}
 
-	this.loadObjectCallback = function ( object ) {
-		this.weapons = [];
+	loadObjectCallback = function ( object ) {
         // object.position.x = -35;
 		object.position.z = 20;
 		object.rotation.y = 1.57;
@@ -410,20 +413,36 @@ function Environment(scene, camera, audio_listener) {
     }
 
     this.loadModels = function () {
-    	this.loadMissileModel('https://iankurgarg.github.io/Missile-Command-Game/assets/models/missile/missile.obj');
+    	this.missile_model = [];
+    	this.loadMissileModel('https://iankurgarg.github.io/Missile-Command-Game/assets/models/missile/missile.obj', 'red');
+    	this.loadMissileModel('https://iankurgarg.github.io/Missile-Command-Game/assets/models/missile/missile.obj', 'green');
     }
 
-    this.loadMissileModel = function (url) {
+
+    this.loadMissileModel = function (url, color) {
 		var mtlLoader = new THREE.MTLLoader();
 		mtlLoader.setCrossOrigin('');
 
 	    var objLoader = new THREE.OBJLoader();
 	    // objLoader.setMaterials( materials );
 	    // objLoader.setPath('https://iankurgarg.github.io/Missile-Command-Game/assets/models/');
-	    objLoader.load( url, function(object) {
-	    	this.missile_model = object;
-	    	this.missile_loaded = true;
-	    });
+	    objLoader.load( url, (function(object) {
+
+
+	    	object.traverse( function ( child ) {
+	             if ( child instanceof THREE.Mesh ) {
+	                  child.material.color.set(color);
+	                  	child.rotation.z = -Math.PI/2;
+				    	child.updateMatrix();
+				    	child.geometry.applyMatrix( child.matrix );
+				    	child.rotation.set( 0, 0, 0 );
+				    	child.updateMatrix();
+	                 }
+	             } );
+
+	    	this.missile_model.push(object);
+    		this.missile_loaded = true;
+	    }).bind(this));
 
 	}
 
@@ -442,7 +461,7 @@ function Environment(scene, camera, audio_listener) {
 		    var objLoader = new THREE.OBJLoader();
 		    // objLoader.setMaterials( materials );
 		    objLoader.setPath('https://iankurgarg.github.io/Missile-Command-Game/assets/models/');
-		    objLoader.load( 'weapon/weapon1.obj', this.loadObjectCallback);
+		    objLoader.load( 'weapon/weapon1.obj', loadObjectCallback.bind(this));
 
 		// });
 
