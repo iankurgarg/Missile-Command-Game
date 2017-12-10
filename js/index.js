@@ -1,6 +1,6 @@
 
 var startTime	= Date.now();
-var container, notifications;
+var container, notifications, animation_frame_requester;
 var camera, scene, renderer, stats;
 var skyboxMesh;
 var env;
@@ -68,6 +68,11 @@ function updateElements() {
 }
 
 function animateMissile() {
+	if (failed() || won()) {
+		return;
+	}
+	env.addMissiles();
+
 	var missiles = env.getMissiles();
 
 	var l = missiles.length - 1;
@@ -76,6 +81,11 @@ function animateMissile() {
 		if (m.position.y > 0) {
 			m.position.y -= 0.1;
 			m.position.x += (m.rotation.z*0.1);	
+		}
+		else {
+			// reached ground. app explosion here
+			scene.remove(m);
+			env.missiles.splice(l, 1);
 		}
 
 		if (!env.checkCollisionWithDefense(l)) {
@@ -89,7 +99,7 @@ function animateMissile() {
 	var l = defense.length - 1;
 	while (l >= 0) {
 		var m = defense[l];
-		// if (m.position.y < 10) {
+		if (m.position.y < 70) {
 			var deltaX = 0.2/Math.sqrt(1 + m.slopez*m.slopez);
 			var deltaY = 0.0;
 			if (m.slopez == Infinity) {
@@ -113,20 +123,34 @@ function animateMissile() {
 			m.position.y += (deltaY);
 			m.position.x += (deltaX);
 
-		// }
+		}
+		else {
+			// out of range. stop rendering
+			scene.remove(m);
+			env.defense.splice(l, 1);
+		}
 		l -= 1;
 	}
 }
 
 
-function isGameOver() {
+function won() {
 	if (env.total_max == 0 && env.getMissiles().length == 0) {
-		alert("Game Over");
+		alert("Game Over. You win. Next Level will be added soon");
+		cancelAnimationFrame(animation_frame_requester);
 	}
 }
 
+function failed() {
+	if (env.lives == 0 ) {
+		alert ("Game Over. You Lost. Restart to continue");
+		cancelAnimationFrame(animation_frame_requester);
+	}
+}
+
+// function to update the information about score and ammo and lives
 function updateNotification() {
-	notifications.textContent = "Ammo: " + env.ammo + "    Score: " + env.score;
+	notifications.textContent = "Ammo: " + env.ammo + "    Score: " + env.score + " Lives left:" + env.lives;
 }
 
 
@@ -140,12 +164,13 @@ function onMouseClick(event) {
 
 // ## Animate and Display the Scene
 function animate() {
+	animation_frame_requester = requestAnimationFrame( animate );
+	
 	// render the 3D scene
 	render();
 	animateMissile();
 	updateNotification();
 	// relaunch the 'timer' 
-	requestAnimationFrame( animate );
 }
 
 

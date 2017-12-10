@@ -5,18 +5,33 @@ function Environment(scene, camera, audio_listener) {
 	this.sky = null;
 	this.missiles = [];
 	this.scene = scene;
+	this.camera = camera;
 	this.plane = null;
-	this.planez = 10;
-
+	
+	// objects to store ascending and descending missiles
 	this.missiles = [];
 	this.defense = [];
-	this.max = 5;
-	this.total_max = 10;
-	this.ammo = 20;
-	this.camera = camera;
+	this.weapons = [];
+	
+	// z of the plane where 'playing' happens. will change the location of the buildings
+	this.planez = 10;
+	
+	// audio listener to load audio files 
 	this.audio_listener = audio_listener;
 
+
+	// max number of descending missiles at any point
+	this.max = 5;
+	// max number of missiles that will descend in current level
+	this.total_max = 10;
+
+	// ammo left
+	this.ammo = 20;
+	// score
 	this.score = 0;
+	// lives left.
+	this.lives = 3;
+
 
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
@@ -49,17 +64,32 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.addMissiles = function() {
-		if ((this.missiles.length) < this.max) {
+		if ((this.missiles.length) < this.max && this.total_max > 0) {
 			var m = this.createMissile('red');
 			m.position.z = this.planez;
 			m.position.y = 70;
-			m.position.x = Math.random()*40 - 20;
+			m.position.x = Math.random()*60 - 30;
 			m.rotation.z = Math.random()-0.5;
 
 			this.missiles.push(m);
 			this.scene.add(m);
 			this.total_max -= 1;
 		}
+	}
+
+	this.destroyMissile = function(i) {
+		this.scene.remove(this.missiles[i]);
+		this.missiles.splice(i, 1);
+	}
+
+	this.destroyDefense = function(i) {
+		this.scene.remove(this.defense[i]);
+		this.defense.splice(i, 1);
+	}
+
+	this.destroyBuilding = function(i) {
+		this.scene.remove(this.buildings[i]);
+		this.buildings.splice(i, 1);
 	}
 
 	this.fireWeapon = function(x, y) {
@@ -127,7 +157,6 @@ function Environment(scene, camera, audio_listener) {
 		return cylinder;
 	}
 
-
 	this.addBuilding = function(x, z, scalex, scaley) {
 		var b1 = this.createBuilding();
 		b1.position.x = x;
@@ -152,10 +181,9 @@ function Environment(scene, camera, audio_listener) {
 			box.setFromObject(b);
 			if (box.intersectsBox(mbox)){
 				console.log('collission with building');
-				this.scene.remove(b);
-				this.scene.remove(missile);
-				this.buildings.splice(l, 1);
-				this.missiles.splice(i, 1);
+				this.destroyBuilding(l);
+				this.destroyMissile(i);
+				this.lives -= 1;
 				return true;
 			}
 			l -= 1;
@@ -176,9 +204,10 @@ function Environment(scene, camera, audio_listener) {
 			if (box.intersectsBox(mbox)){
 				console.log('collission with defense');
 				this.scene.remove(b);
-				this.scene.remove(missile);
 				this.defense.splice(l, 1);
-				this.missiles.splice(i, 1);
+				
+				this.destroyDefense(l);
+				this.destroyMissile(i);
 
 				this.score += 10;
 				return true;
@@ -355,6 +384,7 @@ function Environment(scene, camera, audio_listener) {
 				object.scale.x = 0.15;
 				object.scale.y = 0.15;
 				object.scale.z = 0.15;
+				this.weapons.push(object);
 				this.scene.add( object );
 
 		    });
