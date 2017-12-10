@@ -166,7 +166,7 @@ function animateMissile() {
 		}
 		else {
 			// out of range. stop rendering.
-			env.destroyShip(l);
+			env.destroyShip(l, 'outofrange');
 		}
 		l -=1;
 	}
@@ -175,14 +175,16 @@ function animateMissile() {
 
 function won() {
 	if (env.total_max == 0 && env.getMissiles().length == 0 && env.score > 0 && env.explosions.length == 0) {
-		alert("Game Over. You win. Next Level will be added soon");
-		cancelAnimationFrame(animation_frame_requester);
+		alert("Game Over. You win. Final Score = " + env.score);
+		
+		if (!env.updateLevel())
+			cancelAnimationFrame(animation_frame_requester);
 	}
 }
 
 function failed() {
 	if ((env.lives == 0 || env.weapons.length == 0)  && env.explosions.length == 0) {
-		alert ("Game Over. You Lost. Restart to play again");
+		alert ("Game Over. Final Score = " + env.score + ". Restart to play again");
 		cancelAnimationFrame(animation_frame_requester);
 	}
 	else {
@@ -195,7 +197,7 @@ function failed() {
 
 // function to update the information about score and ammo and lives
 function updateNotification() {
-	notifications.textContent = "Ammo: " + env.ammo + "    Score: " + env.score + " Lives left:" + env.lives;
+	notifications.textContent = "Ammo: " + env.ammo + "    Score: " + env.score + " Lives left:" + env.lives + " Level: " + env.level;
 }
 
 

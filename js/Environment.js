@@ -33,6 +33,9 @@ function Environment(scene, camera, audio_listener) {
 	this.score = 0;
 	// lives left.
 	this.lives = 3;
+	// game level.
+	this.level = 1;
+	this.max_level = 2;
 
 
 	// some flags
@@ -97,6 +100,38 @@ function Environment(scene, camera, audio_listener) {
 		}
 	}
 
+	this.updateLevel = function() {
+		if (this.level < this.max_level) {
+			this.level += 1
+			this.resetEnv();
+			this.resetStats();
+			return true;
+		}
+		return false;
+	}
+
+	this.resetStats = function() {
+		this.ammo = 20;
+		for (var i = 0; i < this.missiles.length; i++) {
+			this.scene.remove(this.missiles[i]);
+		}
+		this.missiles = [];
+
+		for (var i = 0; i < this.defense.length; i++) {
+			this.scene.remove(this.defense[i]);
+		}
+		this.defense = [];
+		this.max = 5;
+		this.total_max = 15;
+	}
+
+	this.resetEnv = function() {
+		this.scene.remove(this.ground);
+		this.createGround();
+		this.scene.remove(this.sky);
+		this.createSky();
+	}
+
 	this.destroyMissile = function(i) {
 		var temp = this.missiles[i];
 		this.missiles.splice(i, 1);
@@ -123,11 +158,12 @@ function Environment(scene, camera, audio_listener) {
 		this.scene.remove(temp);
 	}
 
-	this.destroyShip = function(i) {
+	this.destroyShip = function(i, type) {
 		var temp = this.ships[i];
 		this.ships.splice(i, 1);
 		this.scene.remove(temp);
-		this.ExplodeAnimation(temp.position.x, temp.position.y);
+		if (type == 'collission')
+			this.ExplodeAnimation(temp.position.x, temp.position.y);
 	}
 
 	this.getClosestWeapon = function(x) {
@@ -322,7 +358,7 @@ function Environment(scene, camera, audio_listener) {
 
 				this.destroyDefense(l);
 				if (type == 'ship') {
-					this.destroyShip(i);
+					this.destroyShip(i, 'collission');
 					this.score += 50;
 				}
 				else {
@@ -376,7 +412,7 @@ function Environment(scene, camera, audio_listener) {
 		      
 		  }
 		}
-		var building = "https://iankurgarg.github.io/Missile-Command-Game/assets/building.png";
+		var building = "https://iankurgarg.github.io/Missile-Command-Game/assets/images/building.png";
 
 		var texture       = new THREE.TextureLoader().load(building);
 		texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -392,7 +428,15 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.createSky = function() {
-		var sky = "https://iankurgarg.github.io/Missile-Command-Game/assets/sky.jpg";
+		
+		var sky;
+		if (this.level == 1) {
+			sky = "https://iankurgarg.github.io/Missile-Command-Game/assets/images/sky.jpg";
+		}
+		else if (this.level == 2) {
+			// material = new THREE.MeshBasicMaterial( {color: 'red', side: THREE.DoubleSide} );	
+			sky = "https://iankurgarg.github.io/Missile-Command-Game/assets/images/sky_level.jpg";
+		}
 
 		var texture = new THREE.TextureLoader().load(sky);
 		texture.wrapS = THREE.RepeatWrapping;
@@ -419,15 +463,22 @@ function Environment(scene, camera, audio_listener) {
 
 	// function to create ground
 	this.createGround = function () {
-		var grass = "https://iankurgarg.github.io/Missile-Command-Game/assets/grass.jpg";
+		var material, grass;
+		if (this.level == 1) {
+			grass = "https://iankurgarg.github.io/Missile-Command-Game/assets/images/grass.jpg";
+		}
+		else if (this.level == 2) {
+			// material = new THREE.MeshBasicMaterial( {color: 'red', side: THREE.DoubleSide} );	
+			grass = "https://iankurgarg.github.io/Missile-Command-Game/assets/images/ground_level2.jpg";
+		}
 
 		var texture = new THREE.TextureLoader().load(grass);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 4, 4 );
+		material = new THREE.MeshBasicMaterial( {map: texture, side: THREE.DoubleSide} );
 
 		var geometry = new THREE.PlaneGeometry( 400, 100, 32 );
-		var material = new THREE.MeshBasicMaterial( {map: texture, side: THREE.DoubleSide} );
 		var ground = new THREE.Mesh( geometry, material );
 
 		ground.position.z = -20;
