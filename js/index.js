@@ -4,6 +4,7 @@ var container, notifications, animation_frame_requester;
 var camera, scene, renderer, stats;
 var skyboxMesh;
 var env;
+var game_started = 0;
 
 
 setUp();
@@ -66,6 +67,18 @@ function updateElements() {
 	env.addMissiles();
 
 	document.addEventListener( 'mousedown', onMouseClick, false );
+
+	document.addEventListener('keydown', handleKeyboardEvent, false);
+}
+
+function handleKeyboardEvent(event) {
+  const keyName = event.key;
+  event.preventDefault();
+  if (keyName === ' ') {
+  	game_started = 1;
+    return;
+  }
+
 }
 
 function animateMissile() {
@@ -144,7 +157,7 @@ function won() {
 }
 
 function failed() {
-	if (env.lives == 0  && env.explosions.length == 0) {
+	if ((env.lives == 0 || env.weapons.length == 0)  && env.explosions.length == 0) {
 		alert ("Game Over. You Lost. Restart to play again");
 		cancelAnimationFrame(animation_frame_requester);
 	}
@@ -174,7 +187,9 @@ function animate() {
 	animation_frame_requester = requestAnimationFrame( animate );
 	// render the 3D scene
 	render();
-	animateMissile();
+	if (game_started == 1) {
+		animateMissile(); 
+	}
 	updateNotification();
 	// relaunch the 'timer' 
 }

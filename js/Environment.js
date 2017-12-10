@@ -15,7 +15,7 @@ function Environment(scene, camera, audio_listener) {
 	this.explosions = [];
 	
 	// z of the plane where 'playing' happens. will change the location of the buildings
-	this.planez = 10;
+	this.planez = 20;
 	
 	// audio listener to load audio files 
 	this.audio_listener = audio_listener;
@@ -102,9 +102,28 @@ function Environment(scene, camera, audio_listener) {
 		this.defense.splice(i, 1);
 	}
 
+	this.destroyWeapon = function(i) {
+		this.scene.remove(this.weapons[i]);
+		this.weapons.splice(i, 1);
+	}
+
 	this.destroyBuilding = function(i) {
 		this.scene.remove(this.buildings[i]);
 		this.buildings.splice(i, 1);
+	}
+
+	this.getClosestWeapon = function(x) {
+		if ((this.weapons.length) == 1) {
+			return this.weapons[0].position.x;
+		}
+		else if ((this.weapons.length) == 2) {
+			if (x > 0) {
+				return this.weapons[1].position.x;
+			}
+			else {
+				return this.weapons[0].position.x;
+			}
+		}
 	}
 
 	this.fireWeapon = function(x, y) {
@@ -126,7 +145,11 @@ function Environment(scene, camera, audio_listener) {
 
 		    var intersects = raycaster.intersectObject( this.plane );
 		    
-		    var dir = intersects[0].point.sub(m.position);
+		    var dir = intersects[0].point;
+
+		    m.position.x = this.getClosestWeapon(dir.x);
+
+		    dir = dir.sub(m.position);
 		    
 			m.rotation.z = Math.tanh(Math.abs(dir.y/dir.x)) - Math.PI/2;
 			m.slopez = dir.y/dir.x;
@@ -185,6 +208,26 @@ function Environment(scene, camera, audio_listener) {
 		this.scene.add(b1);
 	}
 
+	this.checkCollisionWithWeapons = function(i) {
+		var missile = this.missiles[i];
+		var mbox = new THREE.Box3();
+		mbox.setFromObject(missile);
+		var l = this.weapons.length - 1;
+		while (l >= 0) {
+			var b = this.weapons[l];
+			var box = new THREE.Box3();
+			box.setFromObject(b);
+			if (box.intersectsBox(mbox)){
+				console.log('collission with weapon');
+				this.destroyWeapon(l);
+				this.destroyMissile(i);
+				return true;
+			}
+			l -= 1;
+		}
+		return false;
+	}
+
 	this.checkCollisionWithBuildings = function(i) {
 		var missile = this.missiles[i];
 
@@ -204,7 +247,8 @@ function Environment(scene, camera, audio_listener) {
 			}
 			l -= 1;
 		}
-		return false;
+
+		return this.checkCollisionWithWeapons(i);
 	}
 
 	this.checkCollisionWithDefense = function(i) {
@@ -399,19 +443,6 @@ function Environment(scene, camera, audio_listener) {
 		}
 	}
 
-	loadObjectCallback = function ( object ) {
-        // object.position.x = -35;
-		object.position.z = 20;
-		object.rotation.y = 1.57;
-		// object.rotation.x = 1.17;
-		object.scale.x = 0.15;
-		object.scale.y = 0.15;
-		object.scale.z = 0.15;
-		this.scene.add( object );
-		this.weapons.push(object);
-
-    }
-
     this.loadModels = function () {
     	this.missile_model = [];
     	this.loadMissileModel('https://iankurgarg.github.io/Missile-Command-Game/assets/models/missile/missile.obj', 'red');
@@ -445,6 +476,33 @@ function Environment(scene, camera, audio_listener) {
 	    }).bind(this));
 
 	}
+
+	loadObjectCallback = function ( object ) {
+		var objectz = object.clone();
+        object.position.x = -20;
+		object.position.z = 20;
+		object.rotation.y = 1.57;
+		object.rotation.x = Math.PI/2 - 0.2;
+		// object.rotation.x = 1.17;
+		object.scale.x = 0.10;
+		object.scale.y = 0.10;
+		object.scale.z = 0.10;
+		this.scene.add( object );
+		this.weapons.push(object);
+
+		
+		objectz.position.x = 20; 
+		objectz.position.z = 20; 
+		objectz.rotation.y = 1.57;
+		objectz.rotation.x = Math.PI/2 - 0.2;
+		// object.rotation.x = 1.17;
+		objectz.scale.x = 0.10;
+		objectz.scale.y = 0.10;
+		objectz.scale.z = 0.10;
+		this.scene.add( objectz );
+		this.weapons.push(objectz);
+
+    }
 
 	// add weapon
 	this.addWeapon = function () {
