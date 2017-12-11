@@ -43,6 +43,10 @@ function Environment(scene, camera, audio_listener) {
 	this.ship_loaded = false;
 	this.ship_counter = 0;
 
+	//sounds
+	this.explosion_sound;
+	this.fire_sound;
+
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
 		this.addBuilding(30, -20, 7.5, 40);
@@ -65,15 +69,25 @@ function Environment(scene, camera, audio_listener) {
 	}
 
 	this.loadSounds = function() {
-		var sound = new THREE.Audio( this.audio_listener );
+		this.explosion_sound = new THREE.Audio( this.audio_listener );
 
 		var audioLoader = new THREE.AudioLoader();
-		audioLoader.load( 'sounds/ambient.ogg', function( buffer ) {
-			sound.setBuffer( buffer );
-			sound.setLoop( false );
-			sound.setVolume( 0.5 );
-			sound.play();
-		});
+		audioLoader.load( 'https://iankurgarg.github.io/Missile-Command-Game/assets/sounds/blast.wav', (function( buffer ) {
+			this.explosion_sound.setBuffer( buffer );
+			this.explosion_sound.setLoop( false );
+			this.explosion_sound.setVolume( 0.7 );
+			// sound.play();
+		}).bind(this));
+
+		this.fire_sound = new THREE.Audio( this.audio_listener );
+
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'https://iankurgarg.github.io/Missile-Command-Game/assets/sounds/shoot.wav', (function( buffer ) {
+			this.fire_sound.setBuffer( buffer );
+			this.fire_sound.setLoop( false );
+			this.fire_sound.setVolume( 0.7 );
+			// sound.play();
+		}).bind(this));
 	}
 
 	this.addMissiles = function() {
@@ -232,6 +246,7 @@ function Environment(scene, camera, audio_listener) {
 			this.ammo -= 1;
 			this.defense.push(m);
 			this.scene.add(m);
+			this.fire_sound.play();
 		}
 	}
 
@@ -517,6 +532,7 @@ function Environment(scene, camera, audio_listener) {
 		explosion.dirs = dirs;
 		this.explosions.push(explosion);
 		this.scene.add(explosion);
+		this.explosion_sound.play();
 	  
 	}
 
