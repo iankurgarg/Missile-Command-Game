@@ -80,6 +80,7 @@ function handleKeyboardEvent(event) {
   const keyName = event.key;
   if (keyName === ' ') {
   	event.preventDefault();
+  	env.startup_sound.play();
   	game_started = 1 - game_started;
     return;
   }
@@ -178,6 +179,7 @@ function won() {
 	if (env.total_max == 0 && env.getMissiles().length == 0 && env.score > 0 && env.explosions.length == 0) {
 		
 		if (!env.updateLevel()) {
+			env.fail_sound.play();
 			alert("Game Over. You win. Final Score = " + env.score);
 			cancelAnimationFrame(animation_frame_requester);
 		}
@@ -186,11 +188,13 @@ function won() {
 
 function failed() {
 	if ((env.lives == 0 || env.weapons.length == 0)  && env.explosions.length == 0) {
+		env.fail_sound.play();
 		alert ("Game Over. Final Score = " + env.score + ". Restart to play again");
 		cancelAnimationFrame(animation_frame_requester);
 	}
 	else {
 		if (env.total_max == 0 && env.getMissiles().length == 0 && env.score == 0) {
+			env.fail_sound.play();
 			alert ("Game Over. You Lost. Zero Score. Restart to play again");
 			cancelAnimationFrame(animation_frame_requester);
 		}

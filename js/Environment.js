@@ -46,6 +46,7 @@ function Environment(scene, camera, audio_listener) {
 	//sounds
 	this.explosion_sound;
 	this.fire_sound;
+	this.startup_sound;
 
 	this.fillBuildings = function () {
 		this.addBuilding(-30, -10, 7.5, 20);
@@ -87,6 +88,26 @@ function Environment(scene, camera, audio_listener) {
 			this.fire_sound.setLoop( false );
 			this.fire_sound.setVolume( 0.7 );
 			// sound.play();
+		}).bind(this));
+
+		this.startup_sound = new THREE.Audio( this.audio_listener );
+
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'https://iankurgarg.github.io/Missile-Command-Game/assets/sounds/startup.wav', (function( buffer ) {
+			this.startup_sound.setBuffer( buffer );
+			this.startup_sound.setLoop( false );
+			this.startup_sound.setVolume( 0.7 );
+			// this.startup_sound.play();
+		}).bind(this));
+
+		this.fail_sound = new THREE.Audio( this.audio_listener );
+
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'https://iankurgarg.github.io/Missile-Command-Game/assets/sounds/fail.wav', (function( buffer ) {
+			this.fail_sound.setBuffer( buffer );
+			this.fail_sound.setLoop( false );
+			this.fail_sound.setVolume( 0.7 );
+			// this.fail_sound.play();
 		}).bind(this));
 	}
 
