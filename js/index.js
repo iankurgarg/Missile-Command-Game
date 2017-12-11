@@ -5,6 +5,7 @@ var camera, scene, renderer, stats;
 var skyboxMesh;
 var env;
 var game_started = 0;
+var game_ended = 0;
 
 var missile_speed = 0.1;
 var defense_speed = 0.3;
@@ -78,7 +79,7 @@ function updateElements() {
 
 function handleKeyboardEvent(event) {
   const keyName = event.key;
-  if (keyName === ' ') {
+  if (keyName === ' ' && game_ended == 0) {
   	event.preventDefault();
   	env.startup_sound.play();
   	game_started = 1 - game_started;
@@ -88,6 +89,9 @@ function handleKeyboardEvent(event) {
 }
 
 function animateMissile() {
+	if (game_ended == 1) {
+		return;
+	}
 	if (failed() || won()) {
 		// if the player is either lost or has won, stop rendering. 
 		return;
@@ -181,6 +185,7 @@ function won() {
 		if (!env.updateLevel()) {
 			env.fail_sound.play();
 			alert("Game Over. You win. Final Score = " + env.score);
+			game_ended = 1;
 			cancelAnimationFrame(animation_frame_requester);
 		}
 	}
@@ -189,12 +194,14 @@ function won() {
 function failed() {
 	if ((env.lives == 0 || env.weapons.length == 0)  && env.explosions.length == 0) {
 		env.fail_sound.play();
+		game_ended = 1;
 		alert ("Game Over. Final Score = " + env.score + ". Restart to play again");
 		cancelAnimationFrame(animation_frame_requester);
 	}
 	else {
 		if (env.total_max == 0 && env.getMissiles().length == 0 && env.score == 0) {
 			env.fail_sound.play();
+			game_ended = 1;
 			alert ("Game Over. You Lost. Zero Score. Restart to play again");
 			cancelAnimationFrame(animation_frame_requester);
 		}
@@ -203,12 +210,12 @@ function failed() {
 
 // function to update the information about score and ammo and lives
 function updateNotification() {
-	notifications.textContent = "Ammo: " + env.ammo + "    Score: " + env.score + " Lives left:" + env.lives + " Level: " + env.level;
+	notifications.textContent = "Ammo: " + env.ammo + "    Score: " + env.score + " Lives: " + env.lives + " Level: " + env.level;
 }
 
 
 function onMouseClick(event) {
-	if (game_started == 1) {
+	if (game_started == 1 && game_ended == 0) {
 		event.preventDefault();
 		env.fireWeapon(event.clientX, event.clientY);
 	}
